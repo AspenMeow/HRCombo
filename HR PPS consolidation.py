@@ -1,13 +1,13 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[307]:
 
 
 get_ipython().run_line_magic('run', '"H:\\Python\\connect to database.ipynb"')
 
 
-# In[2]:
+# In[308]:
 
 
 import numpy as np
@@ -15,7 +15,7 @@ import pandas as pd
 import re
 
 
-# In[3]:
+# In[309]:
 
 
 #pull primary assignments with jobs poistion pay info
@@ -41,11 +41,14 @@ def primds(hrexdt, ooiexdt, dtfilter):
     FASDETAIL = pd.read_sql("select * from HR_"+hrexdt+".HR_PA_FAS_DETAILS_V                    where '"+dtfilter+"' between start_date and end_date", EDW)
     
     Newhire = pd.read_sql("select * from HR_"+hrexdt+".HR_PA_ACTIONS_V                    where ACTN_TYP_CD='ZA' and   EMP_STATUS_CD in ('1','3') and "+                     "start_date between '01-JULY-"+dtfilter[7:]+"' and '30-SEP-"+dtfilter[7:]+"'"  , EDW)
+    
+    LTD = pd.read_sql("select distinct pers_nbr, max(start_date) as max_actn_dt from HR_"+hrexdt+".HR_PA_ACTIONS_V                    where ACTN_TYP_CD='ZQ' and   EMP_STATUS_CD in ('1') and cust_status_cd in (6,8) group by pers_nbr having "+                     "max(start_date) <= '01-OCT-"+dtfilter[7:]+"'" , EDW)
+    LTD['LTD']='Y'
 
     var = [x for x in PDETAIL.columns if re.match(r'racial_cat_cd_\d+',x) or x=='ethnc_cd']
     PDETAIL= PDETAIL.set_index('pers_id').filter(items=var)
 
-    ActivePerson = ACTION[['pers_nbr']].drop_duplicates()
+    ActivePerson = ACTION[['pers_nbr','emp_status_cd','emp_status_nm']].drop_duplicates()
     ActivePerson['Active']='Y'
 
     EDPrsn = ED.groupby('pers_id')['cert_cd'].max().reset_index()
@@ -53,10 +56,10 @@ def primds(hrexdt, ooiexdt, dtfilter):
     Newhire['NewHire']='Y'
 #EDPrsn.head()
 
-    return PRIM.drop(['curr_ind', 'src_last_updated_by', 'src_last_update_date', 'created_by',                   'create_date', 'last_updated_by', 'last_update_date'], axis=1).       join(CX.set_index('pers_nbr').loc[:,['pers_id']], on='pers_nbr', how='inner').       join(JOB.set_index('job_cd').loc[:,['job_ttl','eeo_cd','eeo_nm','emp_cat_cd','emp_cat_nm','fac_rnk_cd']], on='job_cd', how='inner').        join(PSV.set_index('pers_id').loc[:,['ssn','uuid','fst_nm','mid_nm', 'lst_nm','birth_date', 'gndr_cd', 'gndr_nm','zpid']], on='pers_id').        join(PDETAIL, on='pers_id').        join(RES.set_index('pers_id').loc[:,['res_status_cd','res_status_nm']] , on='pers_id').        join(DSPEC.set_index('pers_nbr').loc[:,['cont_svc_date']], on='pers_nbr').        join(ActivePerson.set_index('pers_nbr'), on='pers_nbr').        join(BN.set_index('pers_nbr').loc[:,['acum_fte_svc_mths','vstd_date']], on='pers_nbr').        join(EDPrsn.set_index('pers_id'), on='pers_id').        join(BASEPAY.set_index('pers_nbr').loc[:,['pay_scale_typ_cd','pay_scale_area_cd','wage_typ_cd_2','pymt_wage_typ_amt_2',                                                  'pay_scale_grp_cd','pay_scale_lvl_cd','capc_util_lvl', 'anl_sal']], on='pers_nbr', how='inner').        join(POS.set_index('pos_nbr').loc[:,['pos_ttl']], on='pos_nbr').        join(FASDETAIL.set_index('pers_id').loc[:,['status_cd', 'status_nm','tenure_cont_grant_dept','tenure_cont_status_grant_date',                                                   'tenure_exmp_agr_date','tenure_cont_sys_entr_date','promo_to_cur_rnk_entr_date']], on='pers_id').        join(Newhire.set_index('pers_nbr'), on='pers_nbr')
+    return PRIM.drop(['curr_ind', 'src_last_updated_by', 'src_last_update_date', 'created_by',                   'create_date', 'last_updated_by', 'last_update_date'], axis=1).       join(CX.set_index('pers_nbr').loc[:,['pers_id']], on='pers_nbr', how='inner').       join(JOB.set_index('job_cd').loc[:,['job_ttl','eeo_cd','eeo_nm','emp_cat_cd','emp_cat_nm','fac_rnk_cd']], on='job_cd', how='inner').        join(PSV.set_index('pers_id').loc[:,['ssn','uuid','fst_nm','mid_nm', 'lst_nm','birth_date', 'gndr_cd', 'gndr_nm','zpid']], on='pers_id').        join(PDETAIL, on='pers_id').        join(RES.set_index('pers_id').loc[:,['res_status_cd','res_status_nm']] , on='pers_id').        join(DSPEC.set_index('pers_nbr').loc[:,['cont_svc_date']], on='pers_nbr').        join(ActivePerson.set_index('pers_nbr'), on='pers_nbr').        join(BN.set_index('pers_nbr').loc[:,['acum_fte_svc_mths','vstd_date']], on='pers_nbr').        join(EDPrsn.set_index('pers_id'), on='pers_id').        join(BASEPAY.set_index('pers_nbr').loc[:,['pay_scale_typ_cd','pay_scale_area_cd','wage_typ_cd_2','pymt_wage_typ_amt_2',                                                  'pay_scale_grp_cd','pay_scale_lvl_cd','capc_util_lvl', 'anl_sal']], on='pers_nbr', how='inner').        join(POS.set_index('pos_nbr').loc[:,['pos_ttl']], on='pos_nbr').        join(FASDETAIL.set_index('pers_id').loc[:,['status_cd', 'status_nm','tenure_cont_grant_dept','tenure_cont_status_grant_date',                                                   'tenure_exmp_agr_date','tenure_cont_sys_entr_date','promo_to_cur_rnk_entr_date']], on='pers_id').        join(Newhire.set_index('pers_nbr'), on='pers_nbr').        join(LTD.set_index('pers_nbr'), on='pers_nbr')
 
 
-# In[4]:
+# In[310]:
 
 
 ##########get addtional ranks from addtional assignment#########
@@ -96,7 +99,7 @@ def adtrank(hrexdt, ooiexdt, dtfilter):
     return asgndfL
 
 
-# In[5]:
+# In[311]:
 
 
 ##OOI for org-hirachery##########
@@ -120,7 +123,7 @@ def ooihr(hrexdt, ooiexdt, dtfilter):
 
 
 
-# In[6]:
+# In[312]:
 
 
 def primpop(hrexdt, ooiexdt, dtfilter):
@@ -171,12 +174,15 @@ def primpop(hrexdt, ooiexdt, dtfilter):
     DerRank= DerRank.join(DerRankBC.set_index('pers_nbr'), on='pers_nbr')
     prim = prim.join(DerRank.set_index(['pers_nbr']), on=['pers_nbr'] )
     #derived_rank is max rank among primary job rank or addtional rank
+    prim['DerivedRnk_BC1']= np.where(prim['DerivedRnk_BC']==0, np.nan,prim['DerivedRnk_BC'] )
     prim['derived_rank']= prim[['fac_rnk_cd','DerivedRnk']].apply(np.nanmax, axis=1)
+    prim['derived_rank_rev']= prim[['fac_rnk_cd','DerivedRnk_BC1']].apply(np.nanmax, axis=1)
     
     #hard code derived rank for certain job_cd for 2011
     
     if dtfilter.endswith('11'):
         prim['derived_rank'] = np.where(prim['job_cd'].isin(['20001600','20001601']),4,prim['derived_rank'])
+        prim['derived_rank_rev'] = np.where(prim['job_cd'].isin(['20001600','20001601']),4,prim['derived_rank_rev'])
         
     #code for Employee_category
     #status_cd='COTR' and have rank continuning staff?
@@ -184,17 +190,17 @@ def primpop(hrexdt, ooiexdt, dtfilter):
     prim['Employee_category']= np.where(prim['emp_cat_cd_1']=='G','Grad Asst',
                                        np.where(prim['emp_cat_cd_1']=='S', 'Non Acad',
                                                np.where(prim['status_cd'].isin(['TENR','TPRO']),'Tenure Sys',
-                                                       np.where((prim['derived_rank'].notnull()) & (prim['status_cd'].isnull()) ,'Fix Fac',
-                                                               np.where((prim['derived_rank'].notnull()) & (prim['status_cd'].str.endswith('E')), 'Fix Fac',
+                                                       np.where((prim['derived_rank_rev'].notnull()) & (prim['status_cd'].isnull()) ,'Fix Fac',
+                                                               np.where((prim['derived_rank_rev'].notnull()) & (prim['status_cd'].str.endswith('E')), 'Fix Fac',
                                                                        np.where((prim['status_cd'].notnull()) & ( prim['status_cd'].str.endswith('E') == False),'Cont Staff',
-                                                                               np.where(prim['derived_rank'].isnull(),'Fix Staff', None)))))))
+                                                                               np.where(prim['derived_rank_rev'].isnull(),'Fix Staff', None)))))))
     
     #rank for academics= RPNAME in Acad
-    prim['RANK']= np.where( (prim['status_cd'].isin(['TENR','TPRO']) ) & (prim['derived_rank'].isnull()), 'Professor',
-                        np.where(prim['derived_rank']==4, 'Professor',
-                                np.where(prim['derived_rank']==3, 'Assoc Professor',
-                                        np.where(prim['derived_rank']==2,'Asst Professor',
-                                                np.where(prim['derived_rank']==1, 'Instructor', None)))))
+    prim['RANK']= np.where( (prim['status_cd'].isin(['TENR','TPRO']) ) & (prim['derived_rank_rev'].isnull()), 'Professor',
+                        np.where(prim['derived_rank_rev']==4, 'Professor',
+                                np.where(prim['derived_rank_rev']==3, 'Assoc Professor',
+                                        np.where(prim['derived_rank_rev']==2,'Asst Professor',
+                                                np.where(prim['derived_rank_rev']==1, 'Instructor', None)))))
 
 
     #newhire
@@ -265,7 +271,7 @@ def primpop(hrexdt, ooiexdt, dtfilter):
     
 
 
-# In[7]:
+# In[313]:
 
 
 import warnings
@@ -285,42 +291,190 @@ prim16 = primpop(hrexdt='20161019', ooiexdt='20161019', dtfilter='01-OCT-16')
 prim17 = primpop(hrexdt='20171026', ooiexdt='20171026', dtfilter='01-OCT-17')
 
 
-# In[8]:
+# In[ ]:
 
 
 ###########combining together####################
 
 
-# In[9]:
+# In[314]:
 
 
 prim = pd.concat([prim11,prim12,prim13,prim14,prim15,prim16,prim17])
 
 
-# In[10]:
+# In[315]:
+
+
+#prim= prim[prim17.columns.tolist()]
+
+
+# In[316]:
 
 
 prim.shape
 
 
-# In[11]:
+# In[317]:
+
+
+prim['emp_status_cd'].value_counts()
+
+
+# In[318]:
+
+
+prim['TempOnCall']= np.where(prim['emp_sgrp_cd'].isin(['AC','AW']),'Y','N')
+
+
+# In[319]:
+
+
+#support staff with mulitple poistion
+mstaff = prim[prim['emp_cat_cd_1'].isin(['F','S'])].groupby(['pers_id','CYEAR']).filter(lambda x: len(x) > 1)
+
+
+# In[320]:
+
+
+mstaff.shape
+
+
+# In[321]:
+
+
+#current tenure org
+tenOrg = pd.read_sql("select distinct org_cd, tenure_org_flag from OPB.HR_PA_CURR_EMP_ORG_RELA_RV  where tenure_org_flag='Y'", EDW)
+
+
+# In[322]:
+
+
+mstaff= mstaff.join(tenOrg.set_index('org_cd'), on='org_cd')
+mstaff['Acad']= np.where(mstaff['emp_cat_cd_1']=='F',1,0)
+mstaff['LTDTempexlusion']= np.where(mstaff['TempOnCall']=='Y',0,
+                             np.where(mstaff['LTD'].notnull(),0,1))
+mstaff['acadunit']= np.where(mstaff['tenure_org_flag'].isnull(),0,1)
+mstaff['paid']= np.where(mstaff['anl_sal']>0,1,0)
+mstaff['ContEndDate']=np.where( mstaff['prim_asgn_end_date']==np.datetime64('1900-01-01'),1,0 ) 
+
+
+# In[323]:
+
+
+varlist = ['Acad','LTDTempexlusion','paid','capc_util_lvl','pay_scale_lvl_cd','acadunit','ContEndDate','start_date','pers_nbr']
+def rowselect(df):
+    df=df.reset_index(drop=True)
+    for i in varlist:
+        if i in ('start_date','pers_nbr'):
+            df=df[df[i]==df[i].min()]
+        else:
+            df=df[df[i]==df[i].max()]
+            
+        
+        df['deterfac']=i
+        if len(df)==1:
+            break
+    return df
+    
+    
+
+
+# In[324]:
+
+
+mlist = mstaff.groupby(['CYEAR','pers_id']).apply(rowselect).loc[:,['pers_nbr','deterfac']].reset_index().drop('level_2', axis=1)
+
+
+# In[325]:
+
+
+mlist
+
+
+# In[326]:
+
+
+prim = prim.join(mlist.set_index(['CYEAR','pers_id','pers_nbr']), on=['CYEAR','pers_id','pers_nbr'])
+
+
+# In[327]:
+
+
+prim['FacStaff']= np.where(prim['emp_cat_cd_1'].isin(['F','S']),'Y','N')
+prim['PosNum']=prim.groupby(['CYEAR','pers_id','FacStaff'])['pers_nbr'].transform('count')
+
+
+# In[328]:
+
+
+prim.shape
+
+
+# In[329]:
+
+
+prim['FacStafPosFlag']= np.where( (prim['emp_cat_cd_1'].isin(['S','F']) ) & (prim['PosNum']==1),1,
+                              np.where((prim['emp_cat_cd_1'].isin(['S','F'])) & (prim['PosNum']>1) & (prim['deterfac'].notnull()),1,0))
+
+
+# In[330]:
+
+
+prim['FacStafPosFlag'].value_counts()
+
+
+# In[331]:
+
+
+prim['IPEDS_Flag']= np.where( prim['TempOnCall']=='Y','N',
+                            np.where(prim['LTD']=='Y','N',
+                                    np.where((prim['emp_cat_cd_1'].isin(['S','F'])) & (prim['FacStafPosFlag']==1),'Y','N' )))
+#(prim['emp_cat_cd_1']=='F') | (prim['Staff']) 
+
+
+# In[332]:
+
+
+prim.groupby(['CYEAR','IPEDS_Flag']).size()
+
+
+# In[244]:
+
+
+#t= prim.query('CYEAR=="2017" & IPEDS_Flag=="Y"')
+#t.to_excel("S:/Institutional Research/Chen/HR/testr2017.xlsx", sheet_name="dat")
+#prim.query('CYEAR=="2017" & pers_id=="00076535"')
+
+
+# In[ ]:
 
 
 #############Acad#################
 
 
-# In[12]:
+# In[248]:
 
 
 Acad = prim[prim['emp_sgrp_cd'].isin(['AT','AS','B4','AC','A1','AW','AD','AX','B7','B8'])==False].query('emp_cat_cd_1=="F"').query('(asgn_typ_cd !=asgn_typ_cd) | (asgn_typ_cd != "4")').query('anl_sal>0')
 
+#further exclude LTD and TempOncall
+Acad = Acad[Acad['LTD'].isnull()]
+Acad = Acad.query('TempOnCall=="N"')
 
-# In[13]:
+
+# In[249]:
+
+
+Acad.shape
+
+
+# In[250]:
 
 
 Acad['STATC']= np.where(Acad['status_cd'].isin(['TENR','TPRO']),'FW',
-                       np.where( (Acad['derived_rank'].notnull()) & (Acad['status_cd'].isnull()) , 'FT',
-                                np.where( (Acad['derived_rank'].notnull() & (Acad['status_cd'].str.endswith('E')))  , 'FT',
+                       np.where( (Acad['derived_rank_rev'].notnull()) & (Acad['status_cd'].isnull()) , 'FT',
+                                np.where( (Acad['derived_rank_rev'].notnull() & (Acad['status_cd'].str.endswith('E')))  , 'FT',
                                         np.where(Acad['status_cd'].isin(['CLIB','CPLB']),'LW',
                                            np.where(Acad['emp_cat_cd']=='FLF','LT',
                                                np.where(Acad['status_cd'].isin(['CEXT','CPEX']), 'MW',
@@ -347,13 +501,13 @@ Acad['APPTBAS']= np.where(Acad['emp_sgrp_cd'].isin(['AN','AO','AQ']),'AN',
 
 Acad['SAL_FTE'] = (Acad['anl_sal']/Acad['cul'])*100
 Acad['RANKPC']= np.where(Acad['job_ttl'].str.contains('Post'), 'XPF0',
-                        np.where( (Acad['emp_cat_cd'].str.startswith('FX') ) & ( ~ Acad['status_cd'].isin(['TENR','TPRO'])  ) & (Acad['derived_rank'].isnull()),'0000',
-                                np.where((Acad['emp_cat_cd'].str.startswith('FM') ) & (~ Acad['status_cd'].isin(['TENR','TPRO']) ) & (Acad['derived_rank'].isnull()),'0000',
-                                        np.where(Acad['derived_rank']==4, 'AA00',
-                                                np.where( (Acad['status_cd'].isin(['TENR','TPRO'])) & (Acad['derived_rank'].isnull()),'AA00',
-                                                        np.where(Acad['derived_rank']==3, 'BB00',
-                                                                np.where(Acad['derived_rank']==2,'CC00',
-                                                                        np.where(Acad['derived_rank']==1,'DD00',
+                        np.where( (Acad['emp_cat_cd'].str.startswith('FX') ) & ( ~ Acad['status_cd'].isin(['TENR','TPRO'])  ) & (Acad['derived_rank_rev'].isnull()),'0000',
+                                np.where((Acad['emp_cat_cd'].str.startswith('FM') ) & (~ Acad['status_cd'].isin(['TENR','TPRO']) ) & (Acad['derived_rank_rev'].isnull()),'0000',
+                                        np.where(Acad['derived_rank_rev']==4, 'AA00',
+                                                np.where( (Acad['status_cd'].isin(['TENR','TPRO'])) & (Acad['derived_rank_rev'].isnull()),'AA00',
+                                                        np.where(Acad['derived_rank_rev']==3, 'BB00',
+                                                                np.where(Acad['derived_rank_rev']==2,'CC00',
+                                                                        np.where(Acad['derived_rank_rev']==1,'DD00',
                                                                                 np.where(Acad['job_ttl'].str.contains('- Advisor'),'SSA0',
                                                                                         np.where(Acad['job_ttl'].str.contains('- Curric'),'SSC0',
                                                                                                 np.where(Acad['job_ttl'].str.contains('- Outreach'),'SSP0',
@@ -436,79 +590,81 @@ Acad['FYEAR']= (pd.to_numeric( Acad['CYEAR'])-2000).astype(str) +(pd.to_numeric(
 Acad['TYPE']=4
 
 
-# In[14]:
+# In[251]:
 
 
 Acad=Acad.loc[:,['zpid','pers_id','NCUC','CUC','FYear','Sem' ,'CYEAR', 'AYEAR','ssn','NAME','TYPE','STATC','FULLPART',           'EMPPERC','POSMO','EEO_1','ETHNIC','GENDER','HANDICAP','CITIZEN','DEGREE','APPTBAS','anl_sal','SAL_FTE',           'acum_fte_svc_mths','RANKPC' ,'RANK','birth_date','cont_svc_date','vstd_date','TBDATE','TEDATE','tenure_cont_sys_entr_date',          'Age','New_Hires','Retire_Elig','FixTerm_Exp','AR1','AR2','AR3','AR4','AR5','AR6','AR7','AR8',           'ETHNIC1','ETHNIC2','ETHNIC3','ETHNIC4','ETHNIC5','Total','Tenure_System','Fixed_Term_Faculty',           'Continuing_Staff','Fixed_Term_Staff','Ranked_Faculty','Unranked_Faculty']].rename(columns={'zpid':'ZPid', 'pers_id':'Pers_ID','ssn':'EID','EEO_1':'EEO','anl_sal':'SALARY','acum_fte_svc_mths':'SERVMOS',
                'RANK':'RPNAME', 'birth_date':'BDATE','cont_svc_date':'CDATE','vstd_date':'VDATE','tenure_cont_sys_entr_date':'CEDATE'})
 
 
-# In[15]:
+# In[252]:
 
 
 ###following is to compare with existing Acad###
 
 
-# In[16]:
+# In[253]:
 
 
 tst = pd.read_sql('select * from Non_Aggregated.dbo.Acad where CYEAR>=2011', OPBDB2)
 
 
-# In[17]:
+# In[254]:
 
 
 tst = Acad.join(tst.set_index(['Pers_ID','CYEAR']), on=['Pers_ID','CYEAR'], rsuffix='.y')
 
 
-# In[18]:
+# In[255]:
 
 
 #those in the new Acad output but not in existing is because the left join of the HR_PA_DATE_SPECIFICATIONS_V 
 tst[tst['Total.y'].isnull()].loc[:,['Pers_ID','CYEAR']]
 
 
-# In[19]:
+# In[264]:
 
 
 #this is due to use job_ttl and FAS_ASGN_NM_2,FAS_ASGN_NM_3,FAS_ASGN_NM_4,FAS_ASGN_NM_5 to determine the rank vs
 # fac_rnk_cd the FAC_RNK_cd2 to 5
-tst[ (tst['Fixed_Term_Faculty'] !=tst['Fixed_Term_Faculty.y']) & (tst['Total.y'].notnull()) ].loc[:,['Pers_ID','CYEAR']]
+diff= tst[ (tst['Fixed_Term_Faculty'] !=tst['Fixed_Term_Faculty.y']) & (tst['Total.y'].notnull()) ].loc[:,['Pers_ID','CYEAR','Fixed_Term_Faculty','Fixed_Term_Staff','Fixed_Term_Faculty.y','Fixed_Term_Staff.y']]
+#diff
+diff.to_csv("S:/Institutional Research/Chen/HR/difffx.csv")
 
 
-# In[20]:
+# In[ ]:
 
 
 tst[ (tst['Fixed_Term_Staff'] !=tst['Fixed_Term_Staff.y']) & (tst['Total.y'].notnull()) ].loc[:,['Pers_ID','CYEAR']]
 
 
-# In[21]:
+# In[ ]:
 
 
 #this is due to use of job_ttl to code rank in Acd2015
 tst[ (tst['RPNAME'] !=tst['RPNAME.y']) & (tst['Total.y'].notnull()) & (tst['Ranked_Faculty']==1) ].loc[:,['Pers_ID','CYEAR','RPNAME','RPNAME.y']].head(100)
 
 
-# In[22]:
+# In[ ]:
 
 
 prim.query('CYEAR=="2015"').query('pers_id=="00269238"')[['pers_id','job_ttl','fac_rnk_cd','derived_rank']]
 
 
-# In[23]:
+# In[ ]:
 
 
 #this is due to FXE FME with rank
 tst[ (tst['RANKPC'] !=tst['RANKPC.y']) & (tst['Total.y'].notnull()) & (tst['Ranked_Faculty']==1)  ].loc[:,['Pers_ID','CYEAR','RANKPC','RANKPC.y','RPNAME','Fixed_Term_Faculty']]
 
 
-# In[24]:
+# In[ ]:
 
 
 prim.query('CYEAR=="2015"').query('pers_id=="00005070"')[['pers_id','job_ttl','fac_rnk_cd','derived_rank','emp_cat_cd','status_cd']]
 
 
-# In[30]:
+# In[ ]:
 
 
 tst[ ((tst['SAL_FTE'] -tst['SAL_FTE.y']).abs()>1 ) & (tst['Total.y'].notnull()) ].loc[:,['Pers_ID','CYEAR','SAL_FTE','SAL_FTE.y']]
@@ -517,7 +673,7 @@ tst[ (tst['CITIZEN'] !=tst['CITIZEN.y']) & (tst['Total.y'].notnull()) ].loc[:,['
 tst[ (tst['ETHNIC'] !=tst['ETHNIC.y'].astype(float)) & (tst['Total.y'].notnull()) ].loc[:,['Pers_ID','CYEAR','ETHNIC','ETHNIC.y']]
 
 
-# In[34]:
+# In[ ]:
 
 
 #this is due to difference in derived rank, existing use
@@ -532,7 +688,7 @@ tst[ (tst['STATC'] !=tst['STATC.y']) & (tst['Total.y'].notnull())  ].loc[:,['Per
 ###########Following is for getting the high level FTE #########################
 
 
-# In[37]:
+# In[265]:
 
 
 def costdist(hrexdt, ooiexdt, dtfilter):
@@ -556,7 +712,7 @@ def costdist(hrexdt, ooiexdt, dtfilter):
     #COSTDist = COSTDist.reset_index().join(prim.set_index('pers_nbr').loc[:,['pers_id']], on='pers_nbr', how='inner')
 
 
-# In[38]:
+# In[266]:
 
 
 cost11 = costdist(hrexdt='20111025', ooiexdt='201110', dtfilter='01-OCT-11')
@@ -572,7 +728,7 @@ cost16 = costdist(hrexdt='20161019', ooiexdt='20161019', dtfilter='01-OCT-16')
 cost17 = costdist(hrexdt='20171026', ooiexdt='20171026', dtfilter='01-OCT-17')
 
 
-# In[48]:
+# In[267]:
 
 
 cost= pd.concat([cost11,cost12,cost13,cost14,cost15,cost16,cost17])
@@ -580,7 +736,7 @@ cost = cost.join(prim.set_index(['pers_nbr','CYEAR' ]).                 loc[:,['
                  on=['pers_nbr','CYEAR' ], lsuffix='_pay', how='inner').query('anl_sal>0')
 
 
-# In[49]:
+# In[268]:
 
 
 cost['FTE_Funding_Derived']= cost['wt_pct'] * cost['capc_util_lvl']/10000
@@ -598,7 +754,7 @@ cost['egrp']= np.where(cost['Employee_category']=='Grad Asst','ga',
                                                 np.where(cost['Employee_category']=='Cont Staff','cs','fy')))))
 
 
-# In[50]:
+# In[269]:
 
 
 ##### generating output for high level FTE################
@@ -619,39 +775,39 @@ EmpFTEagg['Current_Assignment']='Y'
 EmpFTEagg = EmpFTEagg.drop(['mau_code_pay','dept_code_pay'], axis=1).rename(columns={'fund_grp_cd':'Fund_Group', 'pers_id':'Person_ID','pers_nbr':'Personnel_Number','CYEAR':'CYear'})
 
 
-# In[51]:
+# In[ ]:
 
 
 EmpFTEagg.groupby('CYear')['gaaffte','gagffte', 'tsaffte','tsgffte',                 'oraffte','orgffte','onraffte','onrgffte','csaffte','csgffte','ftsaffte','ftsgffte','fyaffte','fygffte','fyngfte'].sum()
 
 
-# In[52]:
+# In[ ]:
 
 
 #compare with existing ds
 pd.read_sql('select CYear , sum([gaaffte]) as gaaffte, sum([gagffte]) as gagffte,sum([tsaffte]) as tsaffte,sum([tsgffte]) as tsgffte ,sum([oraffte]) as oraffte, sum([orgffte]) as orgffte,sum([onraffte]) as onraffte,sum([onrgffte]) as onrgffte, sum([csaffte]) as csaffte ,sum([csgffte]) as csgffte  ,sum([ftsaffte]) as ftsaffte,sum([ftsgffte]) asftsgffte    FROM CUC_Aggregates.dbo.HR_HighLevel_FTE_by_Fund_cuc group by CYear order by CYear ', OPBDB2)
 
 
-# In[53]:
+# In[ ]:
 
 
 pd.read_sql('SELECT CYear,sum([fyaffte]) as fyaffte,sum([fygffte]) as fygffte  ,sum([fyngfte]) as fyngfte   FROM CUC_Aggregates.dbo.HR_nacad_FTE_by_Fund_cuc group by CYear order by CYear', OPBDB2)
 
 
-# In[55]:
+# In[ ]:
 
 
 ########################################################
 #########following to get NonAcad FTE details################
 
 
-# In[57]:
+# In[270]:
 
 
 NAcadFTE = cost.join(prim.set_index(['pers_id','pers_nbr','CYEAR']).                       loc[:,['emp_cat_cd','emp_cat_cd_1','zpid','ssn','Name','job_ttl','pay_scale_lvl_cd','cul','EEO_1',                             'ethnc_cd','ETHNIC','ETHNIC1','ETHNIC2','ETHNIC3','ETHNIC4','ETHNIC5','GENDER','CITIZEN']],                        on=['pers_id','pers_nbr','CYEAR'] ).query('emp_cat_cd_1=="S"').query('anl_sal>0')
 
 
-# In[58]:
+# In[271]:
 
 
 NAcadFTE['Employee_Group'] = NAcadFTE['emp_cat_cd'].str.slice(1,2)
@@ -682,13 +838,13 @@ NAcadFTE['FYear']= (pd.to_numeric( NAcadFTE['CYEAR'])-2000).astype(str) +(pd.to_
 NAcadFTE['Function'] = 4
 
 
-# In[59]:
+# In[272]:
 
 
 NAcadFTE=NAcadFTE.rename(columns={'zpid':'ZPid','pers_id':'Pers_ID','ssn':'EID',                         'Name':'NAME','job_ttl':'TITLE','pay_scale_lvl_cd':'LEVEL_code','EEO_1':'EEO_code',                        'ETHNIC':'ETHNIC_code','ETHNIC1':'ETHNIC_code1','ETHNIC2':'ETHNIC_code2','ETHNI3':'ETHNIC_code3',                         'ETHNIC4':'ETHNIC_code4','ETHNIC5':'ETHNIC_code5','GENDER':'GNDR_flag','CITIZEN':'CTZN_flag',                        'fund':'Account','FUND_TYP':'FUND'}).loc[:,[ 'NCUC' ,'CUC','FYear','Sem','CYEAR','AYear','Employee_Group','OCCupation_CODE','FTE_Total'      ,'FTE_GF','FTE_ERF','FTE_DES','FTE_AUX','FTE_OTH','ZPid','Pers_ID' ,'EID','NAME','TITLE','LEVEL_code' ,'FULLPART'      ,'TIMe_code' ,'EEO_code','ETHNIC_code','ETHNIC_code1','ETHNIC_code2','ETHNIC_code3','ETHNIC_code4','ETHNIC_code5'      ,'GNDR_flag','CTZN_flag','Person_FTE','Account' ,'FUND' ,'Category','TYPE','Type_Source','Function']]
 
 
-# In[60]:
+# In[ ]:
 
 
 #from IPython.display import display
@@ -697,20 +853,20 @@ NAcadFTE=NAcadFTE.rename(columns={'zpid':'ZPid','pers_id':'Pers_ID','ssn':'EID',
 #display(NAcadFTE.query('CYEAR=="2012"').query('Pers_ID=="00018161"'))
 
 
-# In[102]:
+# In[ ]:
 
 
 #compare with existing##
 ext = pd.read_sql('SELECT  NCUC, CUC, FYear, Sem , CYEAR , AYear, Employee_Group, OCCupation_CODE      , ZPid, Pers_ID, EID, NAME, TITLE, LEVEL_code, FULLPART, TIMe_code, EEO_code      , ETHNIC_code, ETHNIC_code1, ETHNIC_code2, ETHNIC_code3, ETHNIC_code4, ETHNIC_code5      , GNDR_flag, CTZN_flag , Person_FTE , Account, FUND , Category , TYPE , Type_Source      ,sum( FTE_Total) as FTE_Total, sum(  FTE_GF) as FTE_GF, sum( FTE_ERF) as FTE_ERF ,   sum( FTE_DES) as FTE_DES, sum( FTE_AUX) as FTE_AUX, sum( FTE_OTH) as FTE_OTH  FROM  Non_Aggregated. dbo. NonAcad_FTE  where CYEAR>=2011  group by  NCUC, CUC, FYear, Sem , CYEAR , AYear, Employee_Group, OCCupation_CODE      , ZPid, Pers_ID, EID, NAME, TITLE, LEVEL_code, FULLPART, TIMe_code, EEO_code      , ETHNIC_code, ETHNIC_code1, ETHNIC_code2, ETHNIC_code3, ETHNIC_code4, ETHNIC_code5      , GNDR_flag, CTZN_flag , Person_FTE , Account, FUND , Category , TYPE , Type_Source ', OPBDB2)
 
 
-# In[103]:
+# In[ ]:
 
 
 ext = NAcadFTE.join(ext.set_index(['Pers_ID','CYEAR','CUC','Account']), on=['Pers_ID','CYEAR','CUC','Account'], rsuffix='.y', how='outer' )
 
 
-# In[104]:
+# In[ ]:
 
 
 #due to org_cd =10010117 do not have HR structure under ooi_ooi_org_struct_cd_lvl_rv instead I used 
@@ -718,7 +874,7 @@ ext = NAcadFTE.join(ext.set_index(['Pers_ID','CYEAR','CUC','Account']), on=['Per
 ext[(ext['NCUC'].isnull()) | (ext['NCUC.y'].isnull())][['CUC','NCUC','NCUC.y','CYEAR']].drop_duplicates()
 
 
-# In[107]:
+# In[ ]:
 
 
 #persid of 00023830 with CUC57513 did not in existing because of pos_nbr=999999
@@ -726,13 +882,13 @@ ext[(ext['NCUC'].isnull()) | (ext['NCUC.y'].isnull())].query('CUC=="57513"')[['P
 prim.query('CYEAR=="2013"').query('pers_id=="00023830"').loc[:,['CYEAR','pers_id','pos_nbr']]
 
 
-# In[108]:
+# In[ ]:
 
 
 ext.query('Pers_ID!="00023830"').groupby('CYEAR')['FTE_Total','FTE_Total.y','FTE_GF','FTE_GF.y','FTE_ERF','FTE_ERF.y',                   'FTE_DES','FTE_DES.y','FTE_AUX','FTE_AUX.y','FTE_OTH','FTE_OTH.y'].sum()
 
 
-# In[114]:
+# In[ ]:
 
 
 t=ext.query('Pers_ID!="00023830"').query('(CYEAR != "2011") | (CUC not in ("47117","10117"))')
@@ -740,7 +896,7 @@ t[t['FUND'] != t['FUND.y']].loc[:,['Pers_ID','CYEAR','FUND','FUND.y']].head()
 t[t['ETHNIC_code'] != t['ETHNIC_code.y'].astype(float)].loc[:,['Pers_ID','CYEAR','ETHNIC_code','ETHNIC_code.y']].head()
 
 
-# In[122]:
+# In[ ]:
 
 
 #what ethc_cd is null default?
@@ -748,26 +904,26 @@ t[t['ETHNIC_code'] != t['ETHNIC_code.y'].astype(float)].loc[:,['Pers_ID','CYEAR'
 prim.query('pers_id=="00044135"').query('CYEAR=="2011"')[['pers_id','CYEAR','ethnc_cd','ETHNIC','racial_cat_cd_1']]
 
 
-# In[123]:
+# In[ ]:
 
 
 prim.query('pers_id=="00015129"').query('CYEAR=="2017"')[['pers_id','CYEAR','ethnc_cd','ETHNIC','racial_cat_cd_1']]
 
 
-# In[66]:
+# In[ ]:
 
 
 #problem with 'org_code of 10010117' in 2011
 prim.query('dept_code=="117"')[['org_cd','mau_code','dept_code','CYEAR']].drop_duplicates()
 
 
-# In[126]:
+# In[ ]:
 
 
 #Pushing outputs to OPBDB2 Chen_Test#########
 
 
-# In[128]:
+# In[273]:
 
 
 #function to convert to datatype in sql
@@ -791,7 +947,7 @@ def sqlcol(dfparam):
     return dtypedict
 
 
-# In[129]:
+# In[333]:
 
 
 from sqlalchemy import create_engine, event
@@ -815,14 +971,14 @@ def receive_before_cursor_execute(conn, cursor, statement, params, context, exec
 prim.to_sql('HR_Person_Position_Job', engine, if_exists = 'replace', chunksize = 500,index=False, dtype=sqlcol(prim) )
 
 
-# In[131]:
+# In[275]:
 
 
 #push cost
 cost.to_sql('HR_Person_Cost_Fund_Dist', engine, if_exists = 'replace', chunksize = 1000,index=False, dtype=sqlcol(cost) )
 
 
-# In[134]:
+# In[276]:
 
 
 #push Acad
@@ -835,7 +991,7 @@ engine = create_engine(conn_str)
 Acad.to_sql('Non_Aggregated_Acad', engine, if_exists = 'replace', chunksize = 1000,index=False, dtype=sqlcol(Acad) )
 
 
-# In[136]:
+# In[277]:
 
 
 ##########separte EmpFTEaggg as 2 outputs to fit into current structure###############
@@ -851,7 +1007,7 @@ AcadHL.to_sql('HR_HighLevel_FTE_by_Fund_cuc', engine, if_exists = 'replace', chu
 NonAcadHL.to_sql('HR_nacad_FTE_by_Fund_cuc', engine, if_exists = 'replace', chunksize = 1500,index=False, dtype=sqlcol(NonAcadHL) )
 
 
-# In[150]:
+# In[ ]:
 
 
 olist = NAcadFTE.select_dtypes(include='object').columns.tolist()
@@ -859,19 +1015,19 @@ for i in olist:
     NAcadFTE[i]= NAcadFTE[i].astype('category')
 
 
-# In[158]:
+# In[ ]:
 
 
 NAcadFTE.to_sql('Non_Aggregated_NonAcad_FTE', engine, if_exists = 'replace', chunksize = 200,index=False, dtype=sqlcol(NAcadFTE) )
 
 
-# In[156]:
+# In[ ]:
 
 
 NAcadFTE.groupby('CYEAR')['FTE_Total','FTE_GF','FTE_ERF',                   'FTE_DES','FTE_AUX','FTE_OTH'].sum()
 
 
-# In[159]:
+# In[ ]:
 
 
 NAcadFTE.shape
