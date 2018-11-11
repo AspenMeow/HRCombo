@@ -1047,6 +1047,12 @@ otherwise, just append each new year to the existing*/
 data HR_Person_Position_Job;
 set prim11 prim12 prim13 prim14 prim15 prim16 prim17 prim18;
 run;
+
+/**for HR_Person_Cost_Fund_Dist*/
+data HRCostFundDist;
+set cost11 cost12 cost13 cost14 cost15 cost16 cost17 cost18;
+run;
+
 /*for Acad*/
 data Acad;
 set Acad11 Acad12 Acad13 Acad14 Acad15 Acad16 Acad17 Acad18;
