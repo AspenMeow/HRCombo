@@ -490,6 +490,9 @@ do i=1 to 5;
 	ETHNIC4= ETHNIC5;
 	ETHNIC5= '';
 end;
+/*change LTD only when emp_status=1 LTD='Y' then LTD='Y' - margart confirmed 11/13/18 email*/
+if emp_status_cd='1' and LTD='Y' then LTD='Y';
+else LTD='N';
 
 /*first character of EEO*/
 EEO_1 = substr(eeo_cd,1,1);
@@ -539,7 +542,7 @@ quit;
 data mppl;
 set mppl;
 if emp_cat_cd_1='F' then Acad=1; else Acad=0;
-if TempOnCall='Y' or LTD ne '' then LTDTempexlusion=0; else LTDTempexlusion=1;
+if TempOnCall='Y' or LTD = 'Y' then LTDTempexlusion=0; else LTDTempexlusion=1;
 if anl_sal>0 then paid=1; else paid=0;
 if datepart(prim_asgn_end_date)='01JAN1900'D then ContEndDate=1; else ContEndDate=0;
 run;
@@ -822,7 +825,7 @@ run;
 	 and emp_cat_cd_1='F'
 	 and (asgn_typ_cd ne '' or asgn_typ_cd ne '4')
 	 and anl_sal>0
-	 and LTD =''
+	 and LTD ='N'
 	 and TempOnCall='N';
 	run;
 
