@@ -496,8 +496,14 @@ else LTD='N';
 
 /*first character of EEO*/
 EEO_1 = substr(eeo_cd,1,1);
- /*Name*/
-Name = compress( lst_nm ||','||fst_nm);
+ /*Name count for missing fst nm*/
+if fst_nm ='' then Name = compress( lst_nm );
+else Name=compress( lst_nm ||', '||fst_nm);
+/*add mid name*/
+if fst_nm ='' and mid_nm='' then Lst_Fst_Mid_Name = compress( lst_nm );
+else if mid_nm='' then Lst_Fst_Mid_Name=compress( lst_nm ||', '||fst_nm);
+else Lst_Fst_Mid_Name= compress( lst_nm ||', '||mid_nm||' ' ||fst_nm);
+
 /*temp oncall*/
 if emp_sgrp_cd in ('AC','AW') then TempOnCall='Y';
 else TempOnCall='N';
