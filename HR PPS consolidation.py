@@ -534,12 +534,12 @@ Acad['vstdt']= np.where(Acad['vstd_date'].astype(str).str.slice(0,4)=='9999', No
 Acad['Retire_Elig'] = np.where( (pd.to_datetime(Acad['vstdt'],errors = 'coerce') <= pd.to_datetime((Acad['CYEAR'].astype(int) +1).astype(str)+'-07-01' ) ) &                               (Acad['vstdt'].notnull()) ,1,0 )
 Acad['FixTerm_Exp']= np.where((Acad['prim_asgn_end_date'] <= pd.to_datetime((Acad['CYEAR'].astype(int) +1).astype(str) +'-07-01' ) ) &                              (Acad['prim_asgn_end_date'] != pd.to_datetime('1900-01-01')),1,0)
 Acad['AR1']= np.where(Acad['Age']<35,1,0)
-Acad['AR2']= np.where( (Acad['Age']>=35) & (Acad['Age']<=39),1,0)
-Acad['AR3']= np.where( (Acad['Age']>=40) & (Acad['Age']<=44),1,0)
-Acad['AR4']= np.where( (Acad['Age']>=45) & (Acad['Age']<=49),1,0)
-Acad['AR5']= np.where( (Acad['Age']>=50) & (Acad['Age']<=54),1,0)
-Acad['AR6']= np.where( (Acad['Age']>=55) & (Acad['Age']<=59),1,0)
-Acad['AR7']= np.where( (Acad['Age']>=60) & (Acad['Age']<=64),1,0)
+Acad['AR2']= np.where( (Acad['Age']>=35) & (Acad['Age']<40),1,0)
+Acad['AR3']= np.where( (Acad['Age']>=40) & (Acad['Age']<45),1,0)
+Acad['AR4']= np.where( (Acad['Age']>=45) & (Acad['Age']<50),1,0)
+Acad['AR5']= np.where( (Acad['Age']>=50) & (Acad['Age']<55),1,0)
+Acad['AR6']= np.where( (Acad['Age']>=55) & (Acad['Age']<60),1,0)
+Acad['AR7']= np.where( (Acad['Age']>=60) & (Acad['Age']<65),1,0)
 Acad['AR8']= np.where(Acad['Age']>=65,1,0)
 
 #code for degree
