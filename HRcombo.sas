@@ -1,4 +1,4 @@
-/*the program is to build longitudional HR froze combo file **/
+﻿/*the program is to build longitudional HR froze combo file **/
 /***db access***/
 %include "H:\SAS\SAS_Log_EDW.sas" ;
 LIBNAME OPB  oracle path="MSUEDW" user="&MSUEDW_uid" pw= "&MSUEDW_pwd"
@@ -829,7 +829,7 @@ run;
 	TYPE=4;                                                                                                                                    
 	where emp_sgrp_cd not in ('AT','AS','B4','AC','A1','AW','AD','AX','B7','B8')
 	 and emp_cat_cd_1='F'
-	 and (asgn_typ_cd ne '' or asgn_typ_cd ne '4')
+	 and (asgn_typ_cd is null or asgn_typ_cd ne '4')
 	 and anl_sal>0
 	 and LTD ='N'
 	 and TempOnCall='N';
