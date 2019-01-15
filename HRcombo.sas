@@ -1,4 +1,4 @@
-﻿/*the program is to build longitudional HR froze combo file **/
+/*the program is to build longitudional HR froze combo file **/
 /***db access***/
 %include "H:\SAS\SAS_Log_EDW.sas" ;
 LIBNAME OPB  oracle path="MSUEDW" user="&MSUEDW_uid" pw= "&MSUEDW_pwd"
@@ -434,11 +434,13 @@ derived_rank_rev=max(fac_rnk_cd, DerivedRnk_BC);
  /*need to check those with FFT emp_cat_cd but no status_cd - email exchange on 11/9/2018??*/
  else if status_cd in ('TENR','TPRO') then Employee_category='Tenure Sys';
  /*need to consult with Margaret on whether fix term faculty have to have certain emp_cat_Cd regardless of rank 
- so BC fixed term faculty restrict on emp_cat_cd in('FMM','FFF','FXE','FHF','FNF') this exclude specialist with rank email exchange on 11/9/2018 ??? */
- else if derived_rank_rev ne . and status_cd='' then Employee_category='Fix Fac';
- else if derived_rank_rev ne . and substr(status_cd,length(status_cd),1)='E' then Employee_category='Fix Fac';
+ so BC fixed term faculty restrict on emp_cat_cd in('FMM','FFF','FXE','FHF','FNF') this exclude specialist with rank email exchange on 11/9/2018 
+ this resolve on 1/15/2019 conversation with Jaime include the emp_cat_cd restriction on fix term but take FNF out */
+ else if derived_rank_rev ne . and status_cd='' and emp_cat_cd in ('FMM','FFT','FFF','FXE','FHF') then Employee_category='Fix Fac';
+ else if derived_rank_rev ne . and substr(status_cd,length(status_cd),1)='E' and emp_cat_cd in ('FMM','FFT','FFF','FXE','FHF') then Employee_category='Fix Fac';
  else if status_cd ne '' and  substr(status_cd,length(status_cd),1) ne 'E' then Employee_category='Cont Staff';
- else if  derived_rank_rev=. then Employee_category='Fix Staff';
+ /*take out restriction on paid rank to accomodation with with ranks but emp_cat_cd is not those included before and without status cd */
+ else Employee_category='Fix Staff';
 
  /*rank #rank for academics= RPNAME in Acad*/
  if status_cd in ('TENR','TPRO') and derived_rank_rev=. then RANK='Professor';
