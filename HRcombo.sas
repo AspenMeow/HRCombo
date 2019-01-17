@@ -667,8 +667,11 @@ a.ORG_CD as ORG_CD_pay, a.ORG_FULL_NAME , a.pers_nbr, a.Weight_Percent,a.pymt_wa
 from cost a 
 inner join prim%substr(&hrexdt,3,2) b
 on a.pers_nbr=b.pers_nbr and a.cyear=b.cyear
-where b.anl_sal>0;
+where b.anl_sal>0
+/*exclude LTD and temp on call*/
+and b.LTD ='N' and b.TempOnCall='N';
  
+/*LTD and tempon call is already excluded from cost distrib table*/
 data cost%substr(&hrexdt,3,2);
 set cost;
 length egrp $3;
@@ -862,7 +865,7 @@ select a.*,b.emp_cat_cd,b.emp_cat_cd_1,b.zpid,b.ssn,b.Name,b.job_ttl,b.pay_scale
 from cost%substr(&hrexdt,3,2) a
 inner join prim%substr(&hrexdt,3,2) b
 on a.pers_id=b.pers_id and a.pers_nbr=b.pers_nbr 
-where b.emp_cat_cd_1='S' and a.anl_sal>0;
+where b.emp_cat_cd_1='S' and a.anl_sal>0
 quit;
 
 data NAcadFTE%substr(&hrexdt,3,2);
@@ -1059,7 +1062,7 @@ data HR_Person_Position_Job;
 set prim11 prim12 prim13 prim14 prim15 prim16 prim17 prim18;
 run;
 
-/**for HR_Person_Cost_Fund_Dist*/
+/**for HR_Person_Cost_Fund_Dist LTD and TempONcall excluded from here*/
 data HRCostFundDist;
 set cost11 cost12 cost13 cost14 cost15 cost16 cost17 cost18;
 run;
