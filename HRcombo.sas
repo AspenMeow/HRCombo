@@ -410,21 +410,30 @@ from prim%substr(&hrexdt,3,2) a
 left join CULag b
 on a.pers_id=b.pers_id and a.emp_cat_cd_1=b.emp_cat_cd_1;
 
-/*max addtional rank*/
+/*take the lowest sequential addtional rank*/
+create table lrnk as 
+select a.*
+from asgnf%substr(&hrexdt,3,2) a 
+inner join (
+select distinct pers_nbr, min(seq) as minseq
+from asgnf%substr(&hrexdt,3,2)
+group by pers_nbr) b
+on a.pers_nbr=b.pers_nbr and a.seq=b.minseq
+;
+
 create table prim%substr(&hrexdt,3,2) as 
 select a.*,b.DerivedRnk_BC
 from prim%substr(&hrexdt,3,2) a 
-left join (
-	select pers_nbr, max(DerivedRnk_BC) as DerivedRnk_BC
-		from asgnf%substr(&hrexdt,3,2) 
-	group by pers_nbr) b
+left join lrnk b
 on a.pers_nbr=b.pers_nbr;
 
 data prim%substr(&hrexdt,3,2);
 set prim%substr(&hrexdt,3,2);
 length Employee_category $20 RANK$20;
-/*max across primary rank and addtional*/
-derived_rank_rev=max(fac_rnk_cd, DerivedRnk_BC);
+/*primary first and then addtional*/
+if fac_rnk_cd =. then  derived_rank_rev=DerivedRnk_BC;
+else derived_rank_rev=fac_rnk_cd;
+
 /*hard code derived rank for certain job_cd for 2011 base on Jaime SQL program */
  if %substr(&dtfilter,7,4)='2011' then do;
 	 if job_cd in ('20001600','20001601') then derived_rank_rev=4;
