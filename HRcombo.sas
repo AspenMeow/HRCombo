@@ -483,7 +483,7 @@ else New_Hires=0;
  else if racial_cat_cd_1='R3' then ETHNIC=1;
  else if racial_cat_cd_1='R4' then ETHNIC=6;
  else if racial_cat_cd_1='R5' then ETHNIC=5;
- else ETHNIC=5;
+ else ETHNIC=.;
 
  /*recode other ethnic*/
 ARRAY evar{5} racial_cat_cd_1-racial_cat_cd_5;
@@ -874,7 +874,7 @@ select a.*,b.emp_cat_cd,b.emp_cat_cd_1,b.zpid,b.ssn,b.Name,b.job_ttl,b.pay_scale
 from cost%substr(&hrexdt,3,2) a
 inner join prim%substr(&hrexdt,3,2) b
 on a.pers_id=b.pers_id and a.pers_nbr=b.pers_nbr 
-where b.emp_cat_cd_1='S' and a.anl_sal>0
+where b.emp_cat_cd_1='S' and a.anl_sal>0;
 quit;
 
 data NAcadFTE%substr(&hrexdt,3,2);
