@@ -465,8 +465,8 @@ else New_Hires=0;
 /*new hire based on action*/
  if New_Hires_Act ='' then New_Hires_Act=0;
  else New_Hires_Act=1;
-/*age*/
- age = (&dtfilter. - datepart(birth_date) )/365;
+/*age change age based on 07-01-extraction year per discussion with Jaime on 2/14/19/
+ age = ("01JUL%substr(&dtfilter,7,4)"D - datepart(birth_date) )/365.25;
  /*Citizen*/
  if res_status_cd='C' then CITIZEN='1';
  else if res_status_cd='N'  then CITIZEN='3';
