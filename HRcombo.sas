@@ -58,6 +58,13 @@ options mlogic;
      having max(start_date) <= "01OCT%substr(&dtfilter,7,4)"D;
     quit;
 
+	/*max active date based on talk with Jaime on 3/25. as long as one has active record after LTD, should reverst LTD*/
+	create table maxactivedate as 
+	select distinct pers_nbr, max(start_date) as max_active_dt 
+	from 	hr.HR_PA_ACTIONS_V 
+	where   EMP_STATUS_CD in ('3')
+	group by pers_nbr;
+
 	/*get rid of variables*/
 	data primasgn;
 	set primasgn;
@@ -91,7 +98,7 @@ options mlogic;
     basepay.capc_util_lvl, basepay.anl_sal,
 	pos.pos_ttl,
 	fasdetail.status_cd, fasdetail.status_nm,fasdetail.tenure_cont_grant_dept,fasdetail.tenure_cont_status_grant_date,
-    fasdetail.tenure_exmp_agr_date,fasdetail.tenure_cont_sys_entr_date,fasdetail.promo_to_cur_rnk_entr_date, newhire.New_Hires_Act,LTD.max_actn_dt, LTD.LTD
+    fasdetail.tenure_exmp_agr_date,fasdetail.tenure_cont_sys_entr_date,fasdetail.promo_to_cur_rnk_entr_date, newhire.New_Hires_Act,LTD.max_actn_dt, LTD.LTD,maxactivedate.max_active_dt
 	from primasgn p
 	inner join hr.HR_PA_PERNR_CROSSWALK_V x
 	on p.pers_nbr=x.pers_nbr
@@ -142,7 +149,9 @@ options mlogic;
 	left join newhire
 	on p.pers_nbr=newhire.pers_nbr
 	left join LTD
-	on p.pers_nbr=LTD.pers_nbr;
+	on p.pers_nbr=LTD.pers_nbr
+	left join maxactivedate
+	on p.pers_nbr=maxactivedate.pers_nbr;
 	quit;
 
 %mend;
@@ -370,7 +379,8 @@ quit;
    where substr(EMP_CAT_CD,1,1) in ('F','S','G') 
    and emp_grp_cd ne '5'
    and active ='Y'
-   and ( datepart(prim_asgn_end_date)  =  '01JAN1900'D  or datepart(prim_asgn_end_date)>= &dtfilter) ;
+   /*per talk with Jaime on 3/26/19, add in 9999999 if pos nbr is 99999999 then still use end date*/
+   and ( datepart(prim_asgn_end_date)  =  '01JAN1900'D  or datepart(prim_asgn_end_date)>= &dtfilter or pos_nbr =99999999) ;
    run;
 
 /*conditionally code for rank based on whether fac_rnk_cd in the job table or not*/
@@ -501,8 +511,8 @@ do i=1 to 5;
 	ETHNIC4= ETHNIC5;
 	ETHNIC5= '';
 end;
-/*change LTD only when emp_status=1 LTD='Y' then LTD='Y' - margart confirmed 11/13/18 email*/
-if emp_status_cd='1' and LTD='Y' then LTD='Y';
+/*change LTD - only when max active date < LTD date then LTD talk with Jaime on 03/25/2019*/
+if max_active_date<max_actn_dt and LTD='Y' then LTD='Y';
 else LTD='N';
 
 /*first character of EEO*/
