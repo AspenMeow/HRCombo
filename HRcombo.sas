@@ -427,6 +427,8 @@ from asgnf%substr(&hrexdt,3,2) a
 inner join (
 select distinct pers_nbr, min(seq) as minseq
 from asgnf%substr(&hrexdt,3,2)
+/*min seq when there is a valid rank corrected 4/1*/
+where DerivedRnk_BC is not null and DerivedRnk_BC>0
 group by pers_nbr) b
 on a.pers_nbr=b.pers_nbr and a.seq=b.minseq
 ;
@@ -853,7 +855,8 @@ run;
 	TYPE=4;                                                                                                                                    
 	where emp_sgrp_cd not in ('AT','AS','B4','AC','A1','AW','AD','AX','B7','B8')
 	 and emp_cat_cd_1='F'
-	 and (asgn_typ_cd is null or asgn_typ_cd ne '4')
+	 /*talked to Jaime on 4/1/19, he suggested to take this out*/
+	/* and (asgn_typ_cd is null or asgn_typ_cd ne '4')*/
 	 and anl_sal>0
 	 and LTD ='N'
 	 and TempOnCall='N';
