@@ -51,8 +51,12 @@ def primds(hrexdt, ooiexdt, dtfilter):
                    where ACTN_TYP_CD='ZQ' and   EMP_STATUS_CD in ('1') and cust_status_cd in (6,8) group by pers_nbr having "+\
                      "max(start_date) <= '01-OCT-"+dtfilter[7:]+"'" , ct.EDW)
     LTD['LTD']='Y'
+    
+    MaxActiveDt = pd.read_sql("select pers_nbr, max(start_date) as max_active_date from HR_"+hrexdt+".HR_PA_ACTIONS_V \
+                   where EMP_STATUS_CD in ('3') group by pers_nbr", ct.EDW)
+    
 
-    var = [x for x in PDETAIL.columns if re.match(r'racial_cat_cd_\d+',x) or x=='ethnc_cd']
+    var = [x for x in PDETAIL.columns if re.match(r'racial_cat_cd_\d+',x) or x=='ethnc_cd' or x in ['dsbl_cd','vet_status_cd_1','ethnc_nm', 'racial_cat_nm_1','drv_multi_race_ind']]
     PDETAIL= PDETAIL.set_index('pers_id').filter(items=var)
 
     ActivePerson = ACTION[['pers_nbr','emp_status_cd','emp_status_nm']].drop_duplicates()
@@ -80,8 +84,13 @@ def primds(hrexdt, ooiexdt, dtfilter):
         join(FASDETAIL.set_index('pers_id').loc[:,['status_cd', 'status_nm','tenure_cont_grant_dept','tenure_cont_status_grant_date',\
                                                    'tenure_exmp_agr_date','tenure_cont_sys_entr_date','promo_to_cur_rnk_entr_date']], on='pers_id').\
         join(Newhire.set_index('pers_nbr'), on='pers_nbr').\
-        join(LTD.set_index('pers_nbr'), on='pers_nbr')
-        
+        join(LTD.set_index('pers_nbr'), on='pers_nbr').join(MaxActiveDt.set_index('pers_nbr'), on='pers_nbr')
+ 
+tst18= primds(hrexdt='20181026', ooiexdt='20181026', dtfilter='01-OCT-18')
+tst18.head()
+tst18.query('pers_nbr==39536')
+arnk=tst18
+arnk[ (arnk['DerivedRnk_BC'].notnull()) & (arnk['DerivedRnk_BC'] >0)].query('pers_nbr==44975')       
         
 ##########function get addtional ranks from addtional assignment#########
 def adtrank(hrexdt, ooiexdt, dtfilter):
@@ -159,7 +168,7 @@ def primpop(hrexdt, ooiexdt, dtfilter):
         prim['prim_asgn_end_date'] = np.where(prim['prim_asgn_end_date'].astype(str).str.slice(0,4)=='9999', None, \
                           prim['prim_asgn_end_date'].astype(str) )
     prim['prim_asgn_end_date']= pd.to_datetime(prim['prim_asgn_end_date'])
-    prim['primasgndtfilter'] = np.where( (prim['prim_asgn_end_date'] == np.datetime64('1900-01-01')) | (prim['prim_asgn_end_date'].isnull()) | ( prim['prim_asgn_end_date'] >=  prim['cutdt']),'Y','N')
+    prim['primasgndtfilter'] = np.where( (prim['prim_asgn_end_date'] == np.datetime64('1900-01-01')) | (prim['prim_asgn_end_date'].isnull()) | ( prim['prim_asgn_end_date'] >=  prim['cutdt']) | (prim['pos_nbr']==99999999),'Y','N')
     #first character of emp_cat_cd
     prim['emp_cat_cd_1']= prim['emp_cat_cd'].str.slice(0,1)
     
@@ -191,6 +200,7 @@ def primpop(hrexdt, ooiexdt, dtfilter):
     
     #add additional ranks, choose the lowest sequence
     arnk = adtrank(hrexdt=hrexdt, ooiexdt=ooiexdt, dtfilter=dtfilter)
+    arnk = arnk[ (arnk['DerivedRnk_BC'].notnull()) & (arnk['DerivedRnk_BC'] >0)]
     arnk['minseq']= arnk.groupby('pers_nbr')['seq'].transform(min)
     arnk = arnk.query('minseq==seq').loc[:,['pers_nbr','DerivedRnk','DerivedRnk_BC']]
     #DerRank = adtrank(hrexdt=hrexdt, ooiexdt=ooiexdt, dtfilter=dtfilter).groupby('pers_nbr')['DerivedRnk'].max().reset_index()
@@ -301,13 +311,17 @@ def primpop(hrexdt, ooiexdt, dtfilter):
     
     
     #correct for LTD
-    prim['LTD']= np.where((prim['emp_status_cd']=='1') & (prim['LTD']=='Y'),'Y','N' )
+    prim['LTD']= np.where(prim['max_active_date']>prim['max_actn_dt'],'N',np.where(prim['LTD']=='Y','Y','N'))
     #sal
     prim['salaryflag']= np.where(prim['anl_sal']>0,'Y','N')
 
     return prim
 
+t18 = primds(hrexdt='20181026', ooiexdt='20181026', dtfilter='01-OCT-18')
+
 prim18 = primpop(hrexdt='20181026', ooiexdt='20181026', dtfilter='01-OCT-18')
+prim18.columns.tolist()
+prim18.query('pers_nbr==370353').loc[:,['pers_nbr','LTD','primasgndtfilter']]
 prim17 = primpop(hrexdt='20171026', ooiexdt='20171026', dtfilter='01-OCT-17')
 prim11 = primpop(hrexdt='20111025', ooiexdt='201110', dtfilter='01-OCT-11')
 
@@ -399,7 +413,8 @@ def adtorg(hrexdt, ooiexdt, dtfilter):
     #asgndfL = asgndfL.join(ooi.set_index('org_code'), on='org_code')
     return asgndfL.drop('variable',axis=1)
 
-
+t18= adtorg(hrexdt='20181026', ooiexdt='20181026', dtfilter='01-OCT-18')
+t18.query('pers_nbr==39536')
 def allorgstr(hrexdt, ooiexdt, dtfilter):
     
     #combine previous data
