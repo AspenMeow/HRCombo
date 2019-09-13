@@ -1,4 +1,4 @@
-/*the program is to build longitudional HR froze combo file **/
+﻿/*the program is to build longitudional HR froze combo file **/
 /***db access***/
 %include "H:\SAS\SAS_Log_EDW.sas" ;
 LIBNAME OPB  oracle path="MSUEDW" user="&MSUEDW_uid" pw= "&MSUEDW_pwd"
@@ -56,7 +56,7 @@ options mlogic;
     where ACTN_TYP_CD='ZQ' and   EMP_STATUS_CD in ('1') and cust_status_cd in ('6','8') 
      group by pers_nbr 
      having max(start_date) <= "01OCT%substr(&dtfilter,7,4)"D;
-    quit;
+
 
 	/*max active date based on talk with Jaime on 3/25. as long as one has active record after LTD, should reverst LTD*/
 	create table maxactivedate as 
@@ -571,7 +571,7 @@ quit;
 data mppl;
 set mppl;
 if emp_cat_cd_1='F' then Acad=1; else Acad=0;
-if TempOnCall='Y' or LTD = 'Y' then LTDTempexlusion=0; else LTDTempexlusion=1;
+if TempOnCall='Y' or LTD = 'Y' or emp_status_cd='1' then LTDTempexlusion=0; else LTDTempexlusion=1;
 if anl_sal>0 then paid=1; else paid=0;
 if datepart(prim_asgn_end_date)='01JAN1900'D then ContEndDate=1; else ContEndDate=0;
 run;
@@ -600,7 +600,7 @@ from mppl;
 quit;
 %put &nrow;
 %if &nrow>0 %then %do;
-	%limit(vlist=Acad LTDTempexlusion paid capc_util_lvl pay_scale_lvl_cd acadunit ContEndDate start_date pers_nbr);
+	%limit(vlist=LTDTempexlusion Acad  paid capc_util_lvl pay_scale_lvl_cd acadunit ContEndDate start_date pers_nbr);
 	/*merge with prim*/
 	proc sql stimer;
 	create table prim%substr(&hrexdt,3,2) as 
@@ -1110,9 +1110,5 @@ run;
 data EmpOrGRela;
 set allorg11 allorg12 allorg13 allorg14 allorg15 allorg16 allorg17 allorg18;
 run;
-
-
-
-
 
 
