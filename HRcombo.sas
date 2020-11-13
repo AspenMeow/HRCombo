@@ -1,6 +1,6 @@
 ﻿/*the program is to build longitudional HR froze combo file **/
 /***db access***/
-%include "H:\SAS\SAS_Log_EDW.sas" ;
+%include "C:\Users\chendi4\OneDrive - Michigan State University\From H\SAS\SAS_Log_EDW.sas" ;
 LIBNAME OPB  oracle path="MSUEDW" user="&MSUEDW_uid" pw= "&MSUEDW_pwd"
 	  	schema = OPB preserve_tab_names = yes connection=sharedread;
 
